@@ -120,7 +120,7 @@ function importAllQuestions() {
           'questionsError': questionsError
         }
       };
-      if (log.status === true) {
+      if (log.status.success === true) {
         console.log(log);
       } else {
         console.error(log);
