@@ -274,3 +274,64 @@ function getQuestionAsCSV(metabaseQuestionNum, sheetName) {
   status = getQuestionAndFillSheet(baseUrl, token, metabaseQuestionNum, sheetName);
   return status;
 }
+
+function importAllQuestionsSilently() {
+
+  var questions = getSheetNumbers();
+
+  if (questions.length === 0) {
+    console.log("Couldn't find any question numbers to import.");
+    return;
+  }
+
+  for (var i = 0; i < questions.length; i++) {
+    questions[i].done = false;
+  }
+
+  var questionNumbers = [];
+  for (var i = 0; i < questions.length; i++) {
+    questionNumbers.push(questions[i].questionNumber);
+  }
+
+  var startDate = new Date().toLocaleTimeString();
+  var questionsSuccess = [];
+  var questionsError = [];
+  for (var i = 0; i < questions.length; i++) {
+    var questionNumber = questions[i].questionNumber;
+    var sheetName = questions[i].sheetName;
+    var status = getQuestionAsCSV(questionNumber, sheetName);
+    if (status.success === true) {
+      questionsSuccess.push(questionNumber);
+    } else if (status.success === false) {
+      questionsError.push({
+        'number': questionNumber,
+        'errorMessage': status.error
+      });
+    }
+  }
+
+  var endDate = new Date().toLocaleTimeString();
+
+  var finalStatus;
+  if (questionsError.length === 0) {
+    finalStatus = true;
+  } else {
+    finalStatus = false;
+  }
+  var log = {
+    'user': Session.getActiveUser().getEmail(),
+    'function': 'importAllQuestions',
+    'questionNumber': questionNumbers,
+    'status': {
+      'success': finalStatus,
+      'questionsSuccess': questionsSuccess,
+      'questionsError': questionsError
+    }
+  };
+  if (log.status.success === true) {
+    console.log(log);
+  } else {
+    console.error(log);
+  }
+
+}
